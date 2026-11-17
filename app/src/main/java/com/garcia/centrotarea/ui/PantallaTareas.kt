@@ -62,23 +62,23 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Button(onClick = { toques++ }) { Text("Tócame: $toques") }
-                    Button(onClick = viewModel::tareaLargaMala) {
-                        Text("Tarea larga (MAL)")
+                    Button(onClick = viewModel::tareaLarga) {
+                        Text("Tarea larga")
                     }
                     Text(mensaje, style = MaterialTheme.typography.bodySmall)
                 }
             }
 
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.align(Alignment.CenterHorizontally),
                 shape = forma,
-                color = colores.errorContainer,
-                border = BorderStroke(1.dp, colores.error)
+                color = colores.primary.copy(alpha = 0.08f),
+                border = BorderStroke(1.dp, colores.primary.copy(alpha = 0.16f))
             ) {
                 Text(
-                    text = "Lo que observas: durante 4 segundos nada responde y el texto «Trabajando...» no aparece.",
-                    modifier = Modifier.padding(10.dp),
-                    color = colores.onErrorContainer,
+                    text = "Los toques siguen sumando mientras trabaja",
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    color = colores.primary,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodySmall
                 )
