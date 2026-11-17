@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -31,10 +32,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.garcia.centrotarea.model.CargaUi
 import com.garcia.centrotarea.model.PrimosUi
 import com.garcia.centrotarea.viewmodel.TareasViewModel
 import kotlin.math.roundToInt
@@ -80,6 +84,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                 Text(mensaje, style = MaterialTheme.typography.bodySmall)
             }
             TarjetaPrimos(viewModel)
+            TarjetaCargas(viewModel)
         }
     }
 }
@@ -120,18 +125,56 @@ private fun TarjetaPrimos(viewModel: TareasViewModel) {
             PrimosUi.Inicial -> Unit
             PrimosUi.Calculando -> Text("Calculando...")
             PrimosUi.Cancelado -> Text("Cancelado")
-            is PrimosUi.Listo -> Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                color = Color(0xFFE0F2E2),
-                contentColor = Color(0xFF185B2C)
-            ) {
-                Column(Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Primos hasta $limiteCalculado: ${estado.cantidad}", fontWeight = FontWeight.Bold)
-                    Text("Tiempo: ${estado.milisegundos} ms", style = MaterialTheme.typography.bodySmall)
-                }
+            is PrimosUi.Listo -> RecuadroResultado {
+                Text("Primos hasta $limiteCalculado: ${estado.cantidad}", fontWeight = FontWeight.Bold)
+                Text("Tiempo: ${estado.milisegundos} ms", style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
+}
+
+@Composable
+private fun TarjetaCargas(viewModel: TareasViewModel) {
+    val carga by viewModel.carga.collectAsState()
+    val cargando = carga == CargaUi.Cargando
+
+    TarjetaTarea("Dos cargas") {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = viewModel::cargarUnaPorUna, enabled = !cargando) {
+                Text("Una por una")
+            }
+            Button(onClick = viewModel::cargarALaVez, enabled = !cargando) {
+                Text("A la vez")
+            }
+        }
+        when (val estado = carga) {
+            CargaUi.Inicial, is CargaUi.Error -> Unit
+            CargaUi.Cargando -> CircularProgressIndicator(
+                modifier = Modifier.semantics { contentDescription = "Cargando" }
+            )
+            is CargaUi.Exito -> RecuadroResultado {
+                Text("Modo: ${estado.modo}", fontWeight = FontWeight.Bold)
+                Text("Perfil: ${estado.perfil}")
+                Text("Pedidos: ${estado.pedidos}")
+                Text("Tiempo: ${estado.milisegundos} ms", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecuadroResultado(contenido: @Composable ColumnScope.() -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = Color(0xFFE0F2E2),
+        contentColor = Color(0xFF185B2C)
+    ) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            content = contenido
+        )
     }
 }
 
