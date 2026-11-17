@@ -3,6 +3,7 @@ package com.garcia.centrotarea.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,6 +37,7 @@ import kotlin.math.roundToInt
 fun PantallaTareas(viewModel: TareasViewModel) {
     val mensaje by viewModel.mensaje.collectAsState()
     val progreso by viewModel.progreso.collectAsState()
+    val corriendo by viewModel.corriendo.collectAsState()
     var toques by rememberSaveable { mutableIntStateOf(0) }
     val colores = MaterialTheme.colorScheme
     val forma = MaterialTheme.shapes.medium
@@ -70,8 +73,13 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         style = MaterialTheme.typography.titleSmall
                     )
                     Button(onClick = { toques++ }) { Text("Tócame: $toques") }
-                    Button(onClick = viewModel::tareaLarga, enabled = mensaje != "Trabajando...") {
-                        Text("Iniciar")
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = viewModel::tareaLarga, enabled = !corriendo) {
+                            Text("Iniciar")
+                        }
+                        OutlinedButton(onClick = viewModel::cancelar, enabled = corriendo) {
+                            Text("Cancelar")
+                        }
                     }
                     LinearProgressIndicator(
                         progress = { progreso },
