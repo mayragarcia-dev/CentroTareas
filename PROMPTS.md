@@ -1,46 +1,44 @@
 # Prompts de la Fase 2
 
-Estos prompts están preparados para revisar en Gemini, desde Android Studio, las
-tres mejoras de la rama `mejora-ia`. La implementación y las pruebas iniciales se
-hicieron con Codex. Las respuestas de Gemini se anotarán después de consultarlo.
+Estos prompts están preparados para pedirle a Gemini, desde Android Studio, una
+propuesta para cada mejora de CentroTareas. Usa la rama `main` como referencia
+para comparar las propuestas con lo implementado en `mejora-ia`. La implementación
+y las pruebas iniciales se hicieron con Codex. Las respuestas de Gemini se
+anotarán después de consultarlo.
 
 ## 1. Progreso desde el Repository
 
-> Revisa el commit `3186478` de CentroTareas, una app Android con Kotlin, Compose y
-> MVVM + Repository. La tarea emite 100 avances de 0 a 100 % mediante un
-> `Flow<Float>` en `TareasRepositoryLocal`, con `delay(40)` y
-> `flowOn(Dispatchers.Default)`. El ViewModel recoge el flujo con
-> `viewModelScope` y conserva el `Job` para cancelar. Explica qué parte corre en
-> cada hilo y revisa qué ocurre si pulso **Cancelar** cerca del final o si intento
-> iniciar dos veces. Señala problemas concretos con el archivo y la función
-> afectados, propón un cambio mínimo si hace falta y describe cómo verificar
-> en el emulador que el porcentaje se conserva al cancelar, vuelve a cero al
-> reiniciar y llega a 100 % al completar.
+> En CentroTareas (`main`), la tarea simulada calcula el avance en
+> `TareasViewModel`. Propón cómo mover esa lógica a `TareasRepositoryLocal` y
+> exponerla mediante `TareasRepository` como un `Flow<Float>` con
+> `flowOn(Dispatchers.Default)`. Conserva los 100 pasos de 40 ms, el `Job` para
+> cancelar y el control de doble inicio. Muestra los cambios por archivo y
+> explica en qué hilo se emite y se recoge el flujo. Incluye una prueba para
+> comprobar que **Cancelar** conserva el porcentaje, que **Iniciar** reinicia
+> desde cero y que una ejecución completa llega al 100 %.
 
 ## 2. Primos con progreso
 
-> Revisa el commit `262648a`. `TareasRepositoryLocal` cuenta los primos desde 2
-> hasta el límite inclusive en `Dispatchers.Default`, con `ensureActive()` en
-> cada vuelta. Notifica al ViewModel solo cuando cambia el porcentaje entero,
-> que Compose muestra junto al botón **Cancelar**. Comprueba los casos de límite
-> 2, valores grandes, desbordamiento en el porcentaje y cancelación cerca del
-> último candidato. Revisa que el ViewModel vuelva a lanzar
-> `CancellationException`. Si propones un cambio, conserva el resultado y la
-> cancelación. Incluye pruebas para 100, 1000 y 10 000, con resultados esperados
-> de 25, 168 y 1229, y una prueba con un límite grande en la que **Tócame** siga
-> funcionando durante el conteo.
+> En CentroTareas (`main`), el conteo de primos muestra el resultado y el tiempo
+> al finalizar. Propón cómo mostrar el porcentaje de candidatos revisados
+> durante el cálculo, con cambios en Repository, ViewModel y Compose. Conserva
+> `Dispatchers.Default`, `ensureActive()` y el relanzamiento de
+> `CancellationException`. Evita emitir una actualización por cada candidato y
+> explica cómo evitar desbordamientos y calcular el avance cuando el límite es 2.
+> Incluye una prueba con 1000, cuyo resultado debe ser 168, y otra con un límite
+> grande para verificar que el porcentaje avanza, **Tócame** responde y
+> **Cancelar** detiene el cálculo.
 
 ## 3. Comparación de tiempos
 
-> Revisa el commit `f77ad49`. El ViewModel guarda por separado los tiempos de las
-> cargas exitosas **Una por una** y **A la vez**. La tarjeta **Dos cargas**
-> muestra las dos columnas y admite un número distinto de mediciones en cada
-> modo. Evalúa si el estado y la tabla representan bien una primera carga, dos
-> ejecuciones consecutivas del mismo modo, una carga fallida y un reintento
-> exitoso. Considera qué sucede al rotar y qué pasa al volver a abrir la app.
-> Propón ajustes puntuales si detectas un problema. Incluye una verificación en
-> el emulador que compruebe tiempos cercanos a 5000 ms y 3000 ms y confirme que
-> solo los éxitos agregan mediciones.
+> En CentroTareas (`main`), la tarjeta **Dos cargas** muestra el tiempo de la
+> última ejecución. Propón una tabla en Compose que acumule, por separado, los
+> tiempos de las cargas exitosas **Una por una** y **A la vez**. El estado debe
+> vivir en el ViewModel y la tabla debe admitir cantidades distintas de
+> mediciones por modo. Explica cómo se comportará al rotar. Describe qué filas
+> deberían quedar después de una carga secuencial, dos paralelas, un error
+> simulado y un reintento exitoso. Incluye una prueba con tiempos cercanos a
+> 5000 ms y 3000 ms y comprueba que el error conserva los resultados previos.
 
 ## Registro de revisión
 
