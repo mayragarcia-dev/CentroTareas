@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -147,6 +148,8 @@ private fun TarjetaPrimos(viewModel: TareasViewModel) {
 private fun TarjetaCargas(viewModel: TareasViewModel) {
     val carga by viewModel.carga.collectAsState()
     val simularError by viewModel.simularError.collectAsState()
+    val secuenciales by viewModel.tiemposSecuenciales.collectAsState()
+    val paralelos by viewModel.tiemposParalelos.collectAsState()
     val cargando = carga == CargaUi.Cargando
     val colores = MaterialTheme.colorScheme
 
@@ -200,6 +203,35 @@ private fun TarjetaCargas(viewModel: TareasViewModel) {
                 }
             }
         }
+        if (secuenciales.isNotEmpty() || paralelos.isNotEmpty()) {
+            TablaTiempos(secuenciales, paralelos)
+        }
+    }
+}
+
+@Composable
+private fun TablaTiempos(secuenciales: List<Long>, paralelos: List<Long>) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text("Comparación de tiempos", style = MaterialTheme.typography.titleSmall)
+        FilaTiempos("Una por una", "A la vez", FontWeight.Bold)
+        for (indice in 0 until maxOf(secuenciales.size, paralelos.size)) {
+            HorizontalDivider()
+            FilaTiempos(
+                secuenciales.getOrNull(indice)?.let { "$it ms" } ?: "—",
+                paralelos.getOrNull(indice)?.let { "$it ms" } ?: "—"
+            )
+        }
+    }
+}
+
+@Composable
+private fun FilaTiempos(secuencial: String, paralelo: String, peso: FontWeight = FontWeight.Normal) {
+    Row(Modifier.fillMaxWidth()) {
+        Text(secuencial, Modifier.weight(1f), fontWeight = peso, textAlign = TextAlign.Center)
+        Text(paralelo, Modifier.weight(1f), fontWeight = peso, textAlign = TextAlign.Center)
     }
 }
 

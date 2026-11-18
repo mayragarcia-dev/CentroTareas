@@ -83,6 +83,11 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
     private val _carga = MutableStateFlow<CargaUi>(CargaUi.Inicial)
     val carga: StateFlow<CargaUi> = _carga.asStateFlow()
 
+    private val _tiemposSecuenciales = MutableStateFlow<List<Long>>(emptyList())
+    val tiemposSecuenciales: StateFlow<List<Long>> = _tiemposSecuenciales.asStateFlow()
+    private val _tiemposParalelos = MutableStateFlow<List<Long>>(emptyList())
+    val tiemposParalelos: StateFlow<List<Long>> = _tiemposParalelos.asStateFlow()
+
     private val _simularError = MutableStateFlow(false)
     val simularError: StateFlow<Boolean> = _simularError.asStateFlow()
 
@@ -91,7 +96,7 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
     }
 
     fun cargarUnaPorUna() {
-        cargar("Una por una") { forzarError ->
+        cargar("Una por una", _tiemposSecuenciales) { forzarError ->
             val perfil = repo.cargarPerfil()
             val pedidos = repo.cargarPedidos(forzarError)
             perfil to pedidos
@@ -99,7 +104,7 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
     }
 
     fun cargarALaVez() {
-        cargar("A la vez") { forzarError ->
+        cargar("A la vez", _tiemposParalelos) { forzarError ->
             coroutineScope {
                 val perfil = async { repo.cargarPerfil() }
                 val pedidos = async { repo.cargarPedidos(forzarError) }
@@ -108,14 +113,20 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
         }
     }
 
-    private fun cargar(modo: String, obtenerDatos: suspend (Boolean) -> Pair<String, List<String>>) {
+    private fun cargar(
+        modo: String,
+        tiempos: MutableStateFlow<List<Long>>,
+        obtenerDatos: suspend (Boolean) -> Pair<String, List<String>>
+    ) {
         if (_carga.value == CargaUi.Cargando) return
         viewModelScope.launch {
             _carga.value = CargaUi.Cargando
             val inicio = System.currentTimeMillis()
             try {
                 val (perfil, pedidos) = obtenerDatos(_simularError.value)
-                _carga.value = CargaUi.Exito(modo, perfil, pedidos.size, System.currentTimeMillis() - inicio)
+                val milisegundos = System.currentTimeMillis() - inicio
+                tiempos.value = tiempos.value + milisegundos
+                _carga.value = CargaUi.Exito(modo, perfil, pedidos.size, milisegundos)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
