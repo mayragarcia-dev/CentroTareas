@@ -85,33 +85,46 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
 
     private val _carga = MutableStateFlow<CargaUi>(CargaUi.Inicial)
     val carga: StateFlow<CargaUi> = _carga.asStateFlow()
+
+    private val _simularError = MutableStateFlow(false)
+    val simularError: StateFlow<Boolean> = _simularError.asStateFlow()
+
+    fun cambiarSimularError(valor: Boolean) {
+        _simularError.value = valor
+    }
+
     fun cargarUnaPorUna() {
-        cargar("Una por una") {
+        cargar("Una por una") { forzarError ->
             val perfil = repo.cargarPerfil()
-            val pedidos = repo.cargarPedidos(false)
+            val pedidos = repo.cargarPedidos(forzarError)
             perfil to pedidos
         }
     }
 
     fun cargarALaVez() {
-        cargar("A la vez") {
+        cargar("A la vez") { forzarError ->
             coroutineScope {
                 val perfil = async { repo.cargarPerfil() }
-                val pedidos = async { repo.cargarPedidos(false) }
+                val pedidos = async { repo.cargarPedidos(forzarError) }
                 perfil.await() to pedidos.await()
             }
         }
     }
 
-    private fun cargar(modo: String, obtenerDatos: suspend () -> Pair<String, List<String>>) {
+    private fun cargar(modo: String, obtenerDatos: suspend (Boolean) -> Pair<String, List<String>>) {
         if (_carga.value == CargaUi.Cargando) return
         viewModelScope.launch {
             _carga.value = CargaUi.Cargando
             val inicio = System.currentTimeMillis()
-            val (perfil, pedidos) = obtenerDatos()
-            _carga.value = CargaUi.Exito(modo, perfil, pedidos.size, System.currentTimeMillis() - inicio)
+            try {
+                val (perfil, pedidos) = obtenerDatos(_simularError.value)
+                _carga.value = CargaUi.Exito(modo, perfil, pedidos.size, System.currentTimeMillis() - inicio)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _carga.value = CargaUi.Error("No se pudo cargar: ${e.message ?: "Error desconocido"}")
+            }
         }
     }
 
-    // TODO Paso 7: simularError y manejo de errores
 }

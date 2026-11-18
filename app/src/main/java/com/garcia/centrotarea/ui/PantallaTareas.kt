@@ -20,6 +20,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,6 +38,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.garcia.centrotarea.model.CargaUi
 import com.garcia.centrotarea.model.PrimosUi
@@ -136,9 +138,23 @@ private fun TarjetaPrimos(viewModel: TareasViewModel) {
 @Composable
 private fun TarjetaCargas(viewModel: TareasViewModel) {
     val carga by viewModel.carga.collectAsState()
+    val simularError by viewModel.simularError.collectAsState()
     val cargando = carga == CargaUi.Cargando
+    val colores = MaterialTheme.colorScheme
 
     TarjetaTarea("Dos cargas") {
+        Row(
+            modifier = Modifier.align(Alignment.Start),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Switch(
+                checked = simularError,
+                onCheckedChange = viewModel::cambiarSimularError,
+                modifier = Modifier.semantics { contentDescription = "Simular error" }
+            )
+            Text("Simular error")
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = viewModel::cargarUnaPorUna, enabled = !cargando) {
                 Text("Una por una")
@@ -148,7 +164,7 @@ private fun TarjetaCargas(viewModel: TareasViewModel) {
             }
         }
         when (val estado = carga) {
-            CargaUi.Inicial, is CargaUi.Error -> Unit
+            CargaUi.Inicial -> Unit
             CargaUi.Cargando -> CircularProgressIndicator(
                 modifier = Modifier.semantics { contentDescription = "Cargando" }
             )
@@ -157,6 +173,23 @@ private fun TarjetaCargas(viewModel: TareasViewModel) {
                 Text("Perfil: ${estado.perfil}")
                 Text("Pedidos: ${estado.pedidos}")
                 Text("Tiempo: ${estado.milisegundos} ms", style = MaterialTheme.typography.bodySmall)
+            }
+            is CargaUi.Error -> {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    color = colores.errorContainer,
+                    contentColor = colores.onErrorContainer
+                ) {
+                    Text(
+                        text = estado.mensaje,
+                        modifier = Modifier.padding(10.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                OutlinedButton(onClick = viewModel::cargarALaVez) {
+                    Text("Reintentar")
+                }
             }
         }
     }
