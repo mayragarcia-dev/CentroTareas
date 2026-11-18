@@ -12,12 +12,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -254,10 +256,10 @@ private fun RecuadroResultado(contenido: @Composable ColumnScope.() -> Unit) {
 @Composable
 private fun TarjetaTarea(titulo: String, contenido: @Composable ColumnScope.() -> Unit) {
     val colores = MaterialTheme.colorScheme
-    Surface(
+    OutlinedCard(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        color = colores.surface,
+        colors = CardDefaults.outlinedCardColors(containerColor = colores.surface),
         border = BorderStroke(1.dp, colores.outlineVariant)
     ) {
         Column(
