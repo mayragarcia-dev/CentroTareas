@@ -94,6 +94,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 @Composable
 private fun TarjetaPrimos(viewModel: TareasViewModel) {
     val primos by viewModel.primos.collectAsState()
+    val progresoPrimos by viewModel.progresoPrimos.collectAsState()
     var limite by rememberSaveable { mutableStateOf("6000000") }
     var limiteCalculado by rememberSaveable { mutableIntStateOf(0) }
     val hasta = limite.toIntOrNull()?.takeIf { it >= 2 }
@@ -122,6 +123,13 @@ private fun TarjetaPrimos(viewModel: TareasViewModel) {
             OutlinedButton(onClick = viewModel::cancelarPrimos, enabled = calculando) {
                 Text("Cancelar")
             }
+        }
+        if (calculando || primos == PrimosUi.Cancelado) {
+            LinearProgressIndicator(
+                progress = { progresoPrimos / 100f },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text("$progresoPrimos %", style = MaterialTheme.typography.bodySmall)
         }
         when (val estado = primos) {
             PrimosUi.Inicial -> Unit

@@ -30,14 +30,22 @@ class TareasRepositoryLocal : TareasRepository {
         return listOf("Pedido 101", "Pedido 102", "Pedido 103")
     }
 
-    override suspend fun contarPrimos(hasta: Int): Int = withContext(Dispatchers.Default) {
-        var cantidad = 0
-        for (n in 2..hasta) {
-            ensureActive()
-            if (esPrimo(n)) cantidad++
+    override suspend fun contarPrimos(hasta: Int, alAvanzar: (Int) -> Unit): Int =
+        withContext(Dispatchers.Default) {
+            val total = hasta.toLong() - 1
+            var cantidad = 0
+            var ultimoPorcentaje = 0
+            for (n in 2..hasta) {
+                ensureActive()
+                if (esPrimo(n)) cantidad++
+                val avance = (n.toLong() - 1) * 100
+                if (avance >= total * (ultimoPorcentaje + 1)) {
+                    ultimoPorcentaje = (avance / total).toInt()
+                    alAvanzar(ultimoPorcentaje)
+                }
+            }
+            cantidad
         }
-        cantidad
-    }
 
     private fun esPrimo(n: Int): Boolean {
         var divisor = 2
